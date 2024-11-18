@@ -1,3 +1,2 @@
 # Getting Started with Create React App
-My first react app
-Developed with bootstrap, react-bootstrap and mathjs
+My first react app, developed with bootstrap, react-bootstrap and mathjs
