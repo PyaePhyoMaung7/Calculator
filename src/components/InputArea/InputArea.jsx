@@ -13,69 +13,93 @@ const InputArea = ({ className, getExpression, getResult }) => {
     const operators             = ['*', '/', '+', '-']
 
     const record = (btn) => {
-        setValue((prevValue) => {
-            let curValue = 0
-            let resValue = 0
-            if (numbers.includes(btn)) {
-                curValue = prevValue === "" || prevValue === "0" ? btn : prevValue + btn
+        if (btn) {
+            setValue((prevValue) => {
+                let curValue = 0
+                let resValue = 0
                 const lastChar = prevValue.slice(-1)
                 if (operators.includes(lastChar)) {
-                    setResult(btn)
-                } else if (lastChar === "=") {
-                    curValue = ""
-                    setResult(btn)
-                }else {
-                    setResult((prevResult) => prevResult + btn)
+                    getResult(result)
+                    setResult("")
                 }
-            } else if (btn === ".") {
-                const match = prevValue.match(/[+\-*/](.*)/);
-                if (match) {
-                    const afterOperator = match[1].trim();
-                    if(afterOperator.includes('.')){
-                        curValue = prevValue
-                    } else {
-                        curValue = prevValue + btn
-                        setResult((prevResult) => prevResult + btn)  
-                    }
-                } else {
-                    curValue = prevValue + btn
-                    setResult((prevResult) => prevResult + btn)    
-                }
-            } else if (operators.includes(btn)) {
-                if (prevValue === "" ) {
-                    curValue = "0" + btn
-                } else {
+                if (numbers.includes(btn)) {
+                    curValue = (prevValue === "" || prevValue === "0")? btn : prevValue + btn
                     const lastChar = prevValue.slice(-1)
                     if (operators.includes(lastChar)) {
-                        curValue = prevValue.slice(0, -1) + btn
+                        setResult(btn)
                     } else if (lastChar === "=") {
-                        curValue = result + btn
+                        curValue = ""
+                        setResult(btn)
+                    }else {
+                        setResult((prevResult) => (prevResult === "" || prevResult === "0") ? btn : prevResult + btn)
+                    }
+                } else if (btn === ".") {
+                    const match = prevValue.match(/[+\-*/](.*)/);
+                    if (match) {
+                        const afterOperator = match[1].trim();
+                        if(afterOperator.includes('.')){
+                            curValue = prevValue
+                        } else {
+                            curValue = prevValue + btn
+                            setResult((prevResult) => prevResult + btn)  
+                        }
                     } else {
                         curValue = prevValue + btn
+                        setResult((prevResult) => prevResult + btn)    
                     }
-                }
-                getExpression(value)     
-            } else if (btn === "CE") {
-                curValue = prevValue.slice(0, prevValue.search(/[+\-*/](?!.*[+\-*/])/) + 1);
-            } else if (btn === "C") {
-                curValue = ""
-                setResult("")
-            } else if (btn === "Del") {
-                curValue = /\d$/.test(prevValue) ? prevValue.slice(0, -1) : prevValue
-            } else if (btn === "=") {
-                const lastChar  = prevValue.slice(-1)
-                curValue        = prevValue
-                if (lastChar !== "=") {
-                    if (operators.includes(lastChar)) {
-                        curValue = prevValue + lastNumber(prevValue)
+                } else if (operators.includes(btn)) {
+                    if (prevValue === "" ) {
+                        curValue = "0" + btn
+                    } else {
+                        const lastChar = prevValue.slice(-1)
+                        if (operators.includes(lastChar)) {
+                            curValue = prevValue.slice(0, -1) + btn
+                        } else if (lastChar === "=") {
+                            curValue = result + btn
+                        } else {
+                            curValue = prevValue + btn
+                        }
+                    }
+                    getExpression(value)
+                } else if (btn === "CE") {
+                    const lastChar = prevValue.slice(-1)
+                    if (lastChar !== "=") {
+                        curValue = prevValue.slice(0, prevValue.search(/[+\-*/](?!.*[+\-*/])/) + 1);
+                    } else {
+                        curValue = ""
+                    }
+                    setResult("")
+                } else if (btn === "C") {
+                    curValue = ""
+                    setResult("")
+                } else if (btn === "Del") {
+                    const lastChar = prevValue.slice(-1)
+                    if (!operators.includes(lastChar)) {
+                        if (lastChar !== "=") {
+                            curValue = /[\d.]$/.test(prevValue) ? prevValue.slice(0, -1) : prevValue
+                            setResult((prevResult) => /[\d.]$/.test(prevResult) ? prevResult.slice(0, -1) : prevResult)
+                        } else {
+                            curValue = ""
+                        }
                     } 
-                    resValue = calculate(curValue)
-                    setResult(resValue)
-                    curValue = curValue + "="
-                } 
-            }
-            return curValue
-        })
+                    else {
+                        curValue = prevValue
+                    }
+                } else if (btn === "=") {
+                    const lastChar  = prevValue.slice(-1)
+                    curValue        = prevValue
+                    if (lastChar !== "=") {
+                        if (operators.includes(lastChar)) {
+                            curValue = prevValue + lastNumber(prevValue)
+                        } 
+                        resValue = calculate(curValue)
+                        setResult(resValue)
+                        curValue = curValue + "="
+                    } 
+                }
+                return curValue
+            })
+        }
     }
 
     useEffect(() => {
@@ -86,7 +110,7 @@ const InputArea = ({ className, getExpression, getResult }) => {
         getResult(result);
     }, [result, getResult]);
 
-    const calculate  = (expression) => evaluate(expression) 
+    const calculate  = (expression) => evaluate(expression).toString()
 
     const lastNumber = (expression) => {
         const regex = /(\d+(\.\d+)?)(?=[\+\-\*\/])/g;
